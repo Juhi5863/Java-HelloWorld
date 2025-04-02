@@ -23,7 +23,7 @@ pipeline {
 
         stage('Push Docker Image') {
             steps {
-                withDockerRegistry([credentialsId: 'c8e21db3-78da-47fc-8ad0-3f1c45043a02', url: '']) {
+                withDockerRegistry([credentialsId: '6a280542-7619-4c87-9db0-a1208d2b1bc5', url: '']) {
                     sh 'docker push $DOCKER_IMAGE:$DOCKER_TAG'
                 }
             }
