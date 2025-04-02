@@ -10,9 +10,6 @@ pipeline {
         // Set the Kubernetes config path for Jenkins
         KUBECONFIG = '/var/lib/jenkins/.minikube/config'
         
-        // Ensure Docker and Kubectl are accessible
-        DOCKER_HOST = 'unix:///var/run/docker.sock'
-        PATH = '/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
     }
 
     stages {
