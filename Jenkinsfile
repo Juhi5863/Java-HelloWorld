@@ -6,10 +6,7 @@ pipeline {
         DOCKER_TAG = 'latest'
         KUBE_DEPLOYMENT = 'helloworld-deployment'
         KUBE_NAMESPACE = 'default'
-
-        // Set the Kubernetes config path for Jenkins
-        KUBECONFIG = '/var/lib/jenkins/.minikube/config'
-        
+        KUBECONFIG = '/var/lib/jenkins/.kube/config'  // Ensure Jenkins can access Kubernetes
     }
 
     stages {
@@ -19,9 +16,19 @@ pipeline {
             }
         }
 
+        stage('Fix System Time') {
+            steps {
+                sh '''
+                    sudo timedatectl set-ntp off
+                    sudo timedatectl set-ntp on
+                    date
+                '''
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $DOCKER_IMAGE:$DOCKER_TAG .'
+                sh 'docker build --no-cache -t $DOCKER_IMAGE:$DOCKER_TAG .' // Avoid caching issues
             }
         }
 
@@ -35,17 +42,23 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                sh 'kubectl set image deployment/$KUBE_DEPLOYMENT helloworld=$DOCKER_IMAGE:$DOCKER_TAG -n $KUBE_NAMESPACE'
+                sh '''
+                    sudo chown -R jenkins:jenkins /var/lib/jenkins/.kube
+                    sudo chmod 600 /var/lib/jenkins/.kube/config
+                    export KUBECONFIG=/var/lib/jenkins/.kube/config
+                    kubectl config view
+                    kubectl set image deployment/$KUBE_DEPLOYMENT helloworld=$DOCKER_IMAGE:$DOCKER_TAG -n $KUBE_NAMESPACE
+                '''
             }
         }
     }
 
     post {
         success {
-            echo 'Deployment Successful!'
+            echo '✅ Deployment Successful!'
         }
         failure {
-            echo 'Deployment Failed!'
+            echo '❌ Deployment Failed!'
         }
     }
 }
