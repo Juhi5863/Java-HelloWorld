@@ -4,7 +4,6 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'juhichoudhary/java-application:${BUILD_NUMBER}' // Unique versioned image
         DOCKER_CREDENTIALS = '6a280542-7619-4c87-9db0-a1208d2b1bc5' // Jenkins Docker Hub Credentials ID
-        KUBECONFIG = "/var/lib/jenkins/.kube/config" // This is all you need
     }
 
     stages {
