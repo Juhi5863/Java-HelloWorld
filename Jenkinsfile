@@ -6,7 +6,8 @@ pipeline {
         DOCKER_TAG = 'latest'
         KUBE_DEPLOYMENT = 'helloworld-deployment'
         KUBE_NAMESPACE = 'default'
-        KUBECONFIG = '/var/lib/jenkins/.minikube/profiles/minikube/config'
+        KUBECONFIG = '/var/lib/jenkins/.kube/config' // Recommend this over deep .minikube paths
+        PATH+EXTRA = '/usr/local/bin' // Helps find docker, kubectl if installed here
     }
 
     stages {
@@ -18,14 +19,20 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $DOCKER_IMAGE:$DOCKER_TAG .'
+                sh '''
+                    echo "🔨 Building Docker image..."
+                    docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
+                '''
             }
         }
 
         stage('Push Docker Image') {
             steps {
                 withDockerRegistry([credentialsId: '6a280542-7619-4c87-9db0-a1208d2b1bc5', url: '']) {
-                    sh 'docker push $DOCKER_IMAGE:$DOCKER_TAG'
+                    sh '''
+                        echo "📤 Pushing Docker image to DockerHub..."
+                        docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
+                    '''
                 }
             }
         }
@@ -33,9 +40,14 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 sh '''
-                    echo "Using kubeconfig: $KUBECONFIG"
-                    kubectl get pods -n $KUBE_NAMESPACE
-                    kubectl set image deployment/$KUBE_DEPLOYMENT helloworld=$DOCKER_IMAGE:$DOCKER_TAG -n $KUBE_NAMESPACE
+                    echo "🚀 Deploying to Kubernetes..."
+                    export KUBECONFIG=${KUBECONFIG}
+                    
+                    echo "🔍 Getting pods in namespace ${KUBE_NAMESPACE}..."
+                    kubectl get pods -n ${KUBE_NAMESPACE}
+                    
+                    echo "📦 Updating deployment ${KUBE_DEPLOYMENT} with new image..."
+                    kubectl set image deployment/${KUBE_DEPLOYMENT} helloworld=${DOCKER_IMAGE}:${DOCKER_TAG} -n ${KUBE_NAMESPACE}
                 '''
             }
         }
