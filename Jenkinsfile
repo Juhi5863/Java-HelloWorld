@@ -6,7 +6,7 @@ pipeline {
         DOCKER_TAG = 'latest'
         KUBE_DEPLOYMENT = 'helloworld-deployment'
         KUBE_NAMESPACE = 'default'
-        KUBECONFIG = '/var/lib/jenkins/.kube/config'
+        KUBECONFIG = '/var/lib/jenkins/.minikube/profiles/minikube/config'
     }
 
     stages {
@@ -33,10 +33,8 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 sh '''
-                    export KUBECONFIG=$KUBECONFIG
-                    echo "Checking existing pods..."
+                    echo "Using kubeconfig: $KUBECONFIG"
                     kubectl get pods -n $KUBE_NAMESPACE
-                    echo "Updating deployment with new image..."
                     kubectl set image deployment/$KUBE_DEPLOYMENT helloworld=$DOCKER_IMAGE:$DOCKER_TAG -n $KUBE_NAMESPACE
                 '''
             }
