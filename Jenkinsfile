@@ -4,6 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'juhichoudhary/java-application:${BUILD_NUMBER}' // Unique versioned image
         DOCKER_CREDENTIALS = '6a280542-7619-4c87-9db0-a1208d2b1bc5' // Jenkins Docker Hub Credentials ID
+        PATH+EXTRA = "/usr/local/bin:/usr/bin"
     }
 
     stages {
